@@ -156,7 +156,7 @@ status_t VirtualDisplaySurface::prepareFrame(CompositionType compositionType) {
 
     if (mCompositionType != COMPOSITION_GLES &&
             (mOutputFormat != mDefaultOutputFormat ||
-             mOutputUsage != GRALLOC_USAGE_HW_COMPOSER)) {
+             !(mOutputUsage & GRALLOC_USAGE_HW_COMPOSER))) {
         // We must have just switched from GLES-only to MIXED or HWC
         // composition. Stop using the format and usage requested by the GLES
         // driver; they may be suboptimal when HWC is writing to the output
@@ -578,9 +578,11 @@ status_t VirtualDisplaySurface::setSidebandStream(const sp<NativeHandle>& /*stre
     return INVALID_OPERATION;
 }
 
-void VirtualDisplaySurface::allocateBuffers(uint32_t /* width */,
-        uint32_t /* height */, PixelFormat /* format */, uint32_t /* usage */) {
-    // TODO: Should we actually allocate buffers for a virtual display?
+void VirtualDisplaySurface::allocateBuffers(uint32_t width,
+        uint32_t height, PixelFormat format, uint32_t usage) {
+    if (mDisplayId < 0) {
+        mSource[SOURCE_SINK]->allocateBuffers(width, height, format, usage);
+    }
 }
 
 status_t VirtualDisplaySurface::allowAllocation(bool /* allow */) {
